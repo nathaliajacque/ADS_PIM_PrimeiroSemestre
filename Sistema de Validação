@@ -1,1 +1,273 @@
-oi
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+
+//Admin
+
+//Validar o ingresso
+
+char *opcoes[] = {
+"Carros Voadores",
+"Jogos Olímpicos em Paris",
+"Futuro da Inteligência Artificial na sociedade"
+};
+char *tipo[] = {
+"Entrada cheia",
+"Meia-entrada",
+"Isento"
+};
+
+//Função do login no inicio do programa
+int checarLogin(char *usuario, char *senha) {
+
+    FILE *file = fopen("../ArquivosPim/contas.csv", "r");
+    if (file == NULL) {
+        Linha();
+        printf("  Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+    fscanf(file, "%*[^,\n],");
+    char usuarioSalvo[50], senhaSalva[50], nivelAcesso[5];
+    while (fscanf(file, " %[^;];%[^;];%[^\n];", usuarioSalvo, senhaSalva,nivelAcesso)==3) {
+        if (strcmp(usuario, usuarioSalvo) == 0 && strcmp(senha, senhaSalva) == 0) {
+                if(strcmp(nivelAcesso,"1") != 0){
+                    Linha();
+
+                    printf("  Somente administradores tem acesso a esse programa.");
+                    Linha();
+                    fclose(file);
+                    return 0;
+                }
+            fclose(file);
+            return 1; //Login realizado com sucesso
+        }
+    }
+        Linha();
+        printf("  Usuário ou senha inválidos");
+        Linha();
+
+    fclose(file);
+    return 0; //Login invalido
+}
+
+//Função para checar dados do visitante
+int InfoVisitante(char *numeroIngresso[50], char *TemaEscolhido[5], char *TipoIngresso[5], char nomeDoTema[250]) {
+    FILE *file = fopen("../ArquivosPim/user_info.csv", "r");
+    if (file == NULL) {
+        printf("Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+
+
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), file);
+    while (fgets(buffer, sizeof(buffer),file)) {
+    char IngressoSalvo[50], TemaSalvo[20], TipoIngSalvo[20], ingressoValido[20],cpf[20];
+    sscanf(buffer, "%[^;];%[^;];%[^;];%[^;];%[^\n]", TemaSalvo, TipoIngSalvo,IngressoSalvo,ingressoValido,cpf);
+
+
+
+    if (strcmp(numeroIngresso, IngressoSalvo) == 0) {
+                int numeroTema = TemaSalvo[0] - '0';
+
+        if(strcmp(ingressoValido, "true") == 0){
+        if(strcmp(opcoes[numeroTema - 1], nomeDoTema) == 0){
+        strcpy(TemaEscolhido, TemaSalvo);
+        strcpy(TipoIngresso, TipoIngSalvo);
+        fclose(file);
+        return 1; //ingresso encontrado
+
+        }
+        else{
+        printf("Ingresso não é válido para esse tema!\n");
+        }
+        }
+}
+    fclose(file);
+    Linha();
+    printf("  Ingresso inválido!.\n");}
+    return 0; //ingresso não encontrado
+}
+
+//Função de formatação para o console
+void Linha() {
+printf("\n\n");
+}
+
+void descriptografarStringCPF(char *CPF) {
+    int i;
+    for (i = 0; i < strlen(CPF); i++) {
+        // Subtrai i ao valor ASCII de cada caractere
+          if ( CPF[i] == '$' ){
+                 CPF[i] =  ';';
+            }
+          CPF[i] = CPF[i] - i;
+    }
+
+}
+
+void validarIngresso( char *numeroIngresso) {
+
+    FILE *file = fopen("../ArquivosPim/user_info.csv", "r");
+
+    if (file == NULL) {
+    printf("  Erro ao abrir o arquivo!\n");
+    exit(1);
+    }
+
+    FILE *tempFile = fopen("../ArquivosPim/tempfile.csv", "w");
+
+    if (tempFile == NULL) {
+        fclose(file);
+        fprintf(stderr, "  Erro ao abrir o arquivo temporário para escrever.\n");
+        return;
+    }
+
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), file);
+    while (fgets(buffer, sizeof(buffer),file)) {
+    char IngressoSalvo[50], TemaSalvo[20], TipoIngSalvo[20], ingressoValido[20],cpf[20];
+    sscanf(buffer, "%[^;];%[^;];%[^;];%[^;];%[^\n]", TemaSalvo, TipoIngSalvo,IngressoSalvo,ingressoValido,cpf);
+
+    if (strcmp(numeroIngresso, IngressoSalvo) == 0) {
+        fprintf(tempFile, "%s;%s;%s;false;%s\n", TemaSalvo, TipoIngSalvo,IngressoSalvo,cpf);
+    }
+
+    else
+    {
+        fprintf(tempFile, "%s", buffer);
+    }
+}
+
+    fclose(file);
+    fclose(tempFile);
+    remove("../ArquivosPim/user_info.csv");
+
+    if (rename("../ArquivosPim/tempfile.csv", "../ArquivosPim/user_info.csv") != 0) {
+        fprintf(stderr, "  Erro ao renomear arquivo.\n");
+    }
+
+}
+
+int main() {
+
+    setlocale(LC_ALL, "Portuguese");
+
+    int terminar = 0, i=0;
+    char usuario[20], senha[20], caractere;
+    char nomeDoTema[250];
+
+    Linha();
+    printf("  Usuário: ");
+    scanf("%s",usuario);
+    fflush(stdin);
+
+    printf("  Senha: ");
+
+    while (1) {
+    caractere = getch();
+    if (caractere == 13){
+        senha[i] = '\0';
+        break;
+    }
+
+    else if (caractere == 8 && i > 0){
+        printf("\b \b");
+        i--;
+    }
+
+    else {
+        senha[i] = caractere;
+        i++;
+        printf("*");
+    }
+
+    }
+
+    system("cls");
+
+if (checarLogin(usuario, senha)) {
+        Linha();
+        printf("  Digite o nome do tema:\n");
+        gets(nomeDoTema);
+        system("cls");
+
+    do {
+
+    char numeroIngresso[50];
+    char TemaEscolhido[5];
+    char TipoIngresso[5];
+
+    Linha();
+    printf("  Digite o número do ingresso: ");
+    scanf("%s",numeroIngresso);
+    fflush(stdin);
+    system("cls");
+
+
+    if (InfoVisitante(numeroIngresso, TemaEscolhido, TipoIngresso,nomeDoTema)) {
+
+        Linha();
+        printf("  Informações do visitante:\n");
+        Linha();
+
+        printf("  Tema:\n");
+        int numeroTema = TemaEscolhido[0] - '0';
+        printf("  %s\n",opcoes[numeroTema - 1]);
+        Linha();
+
+        printf("  Tipo do ingresso:\n");
+        int numeroTipo = TipoIngresso[0] - '0';
+        printf("  %s\n",tipo[numeroTipo - 1]);
+
+        Linha();
+        printf("\t\t\t");
+        system ("pause");
+        system("cls");
+
+        Linha();
+        printf("  Digite abaixo o número correspondente:\n\n");
+        printf("  1. Sair.\n");
+        printf("  2. Validar ingresso.\n");
+        printf("  3. Para retornar ao menu.\n");
+
+        scanf("%d",&terminar);
+        fflush(stdin);
+        system("cls");
+
+            if(terminar == 2){
+
+            validarIngresso(numeroIngresso);
+            Linha();
+            printf("  Ingresso validado com sucesso!.\n");
+            Linha();
+            printf("  Digite abaixo o número correspondente:\n\n");
+            printf("  1. Sair.\n");
+            printf("  2. Para retornar ao menu.\n");
+            scanf("%d",&terminar);
+            fflush(stdin);
+            system("cls");
+        }
+
+    }
+
+     else {
+
+
+        Linha();
+        printf("  Digite abaixo o número correspondente:\n\n");
+        printf("  1. Sair.\n");
+        printf("  2. Para retornar ao menu.\n");
+        scanf("%d",&terminar);
+        fflush(stdin);
+        system("cls");
+
+    }
+
+    }while (terminar != 1);
+
+    }
+
+
+}
