@@ -1,1 +1,234 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <locale.h>
 
+//Operador e admin
+
+//Avaliar a obra
+
+typedef struct {
+   int nota1;
+   int nota2;
+   int nota3;
+   int nota4;
+} Obra;
+
+//Função do login no inicio do programa
+int checarLogin(char *usuario, char *senha) {
+    FILE *file = fopen("../ArquivosPim/contas.csv", "r");
+    if (file == NULL) {
+        Linha();
+        printf("  Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+    fscanf(file, "%*[^,\n],");
+    char usuarioSalvo[50], senhaSalva[50], nivelAcesso[10];
+    while (fscanf(file, " %[^;];%[^;];%[^\n];", usuarioSalvo, senhaSalva,nivelAcesso)==3) {
+        if (strcmp(usuario, usuarioSalvo) == 0 && strcmp(senha, senhaSalva) == 0) {
+                if(strcmp(nivelAcesso,"1") != 0 && strcmp(nivelAcesso,"2") != 0){
+                    Linha();
+
+                    printf("  Somente administradores tem acesso a esse programa.");
+                    Linha();
+                    fclose(file);
+                    return 0;
+                }
+            fclose(file);
+            return 1; //Login realizado com sucesso
+        }
+    }
+
+        Linha();
+        printf("  Usuário ou senha inválidos");
+        Linha();
+
+    fclose(file);
+    return 0; //Login invalido
+}
+
+//Função para obter avaliação da obra e salvar em arquivo
+void SalvarNotaObra (Obra *nota, char nomeDaObra[20]){
+    FILE *file = fopen("../ArquivosPim/nota_obra.csv", "a");
+    if (file == NULL) {
+        printf("  Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+
+    fprintf(file, "%s;%d;%d;%d;%d\n",nomeDaObra, nota->nota1, nota->nota2, nota->nota3, nota->nota4);
+    fclose(file);
+
+    Linha();
+    Linha2();
+    printf("   Avaliação salva com sucesso!\n");
+
+}
+
+//Função de formatação para o console
+void Linha() {
+printf ("\n\n");
+}
+
+//Função de formatação para o console
+void Linha2() {
+printf("                \t\t\t");
+}
+
+void Notas (Obra *nota) {
+
+do{
+    //Primeira questão
+    Linha();
+    Linha2();
+    printf("       Prezado(a) visitante !!! \n        A fim de melhorar a experiência do Museu Multitemático UNISEU o convidamos a avaliar a obra ao lado.\n");
+    Linha();
+    printf("  O que você achou da estrutura montada da obra?\n");
+    printf("  Digite o número correspondente a sua opinião:\n");
+    Linha();
+    printf("  3. Excelente\n");
+    printf("  2. Boa\n");
+    printf("  1. Ruim\n");
+    printf("  0. Péssimo\n");
+    Linha();
+    scanf("%d", &nota->nota1);
+    system("cls");
+
+    if(nota->nota1 > 3 || nota->nota1 < 0){
+        Linha();
+        printf("  Nota inválida!");
+
+    }
+} while (nota->nota1 > 3 || nota->nota1 < 0);
+
+do{
+    //Segunda questão
+    Linha();
+    printf("  O que você achou do conteúdo apresentado no tema?\n");
+    printf("  Digite o número correspondente a sua opinião:\n");
+    Linha();
+    printf("  3. Excelente\n");
+    printf("  2. Boa\n");
+    printf("  1. Ruim\n");
+    printf("  0. Péssimo\n");
+    Linha();
+    scanf("%d", &nota->nota2);
+    system("cls");
+
+    if(nota->nota2 > 3 || nota->nota2 < 0){
+        Linha();
+        printf("  Nota inválida!");
+    }
+} while (nota->nota2 > 3 || nota->nota2 < 0);
+
+do{
+    //Terceira questão
+    Linha();
+    printf("  A obra transmitiu uma mensagem clara?\n");
+    printf("  Digite o número correspondente a sua opinião:\n");
+    Linha();
+    printf("  3. Sim, muito clara\n");
+    printf("  2. Sim, mas um pouco vaga\n");
+    printf("  1. Não, a mensagem não ficou clara\n");
+    printf("  0. Não percebi uma mensagem específica\n");
+    Linha();
+    scanf("%d", &nota->nota3);
+    system("cls");
+
+    if(nota->nota3 > 3 || nota->nota3 < 0){
+        Linha();
+        printf("  Nota inválida!");
+    }
+} while (nota->nota3 > 3 || nota->nota3 < 0);
+
+
+do{
+    //Quarta questão
+    Linha();
+    printf("  A obra é coerente com a temática proposta pela exposição?\n");
+    printf("  Digite o número correspondente a sua opinião:\n");
+    Linha();
+    printf("  3. Sim, totalmente coerente\n");
+    printf("  2. Sim, em parte coerente\n");
+    printf("  1. Não muito coerente\n");
+    printf("  0. Não, nada coerente\n");
+    Linha();
+    scanf("%d", &nota->nota4);
+    system("cls");
+
+    if(nota->nota4 > 3 || nota->nota4 < 0){
+        Linha();
+        printf("  Nota inválida!");
+    }
+} while (nota->nota4 > 3 || nota->nota4 < 0);
+
+}
+
+
+void main() {
+    setlocale(LC_ALL, "Portuguese");
+    Obra atracao;
+    char nomeDaObra[250];
+
+    int terminar = 0; int i = 0;
+    char usuario[20], senha[20], caractere;
+
+    Linha();
+    printf("  Usuário: ");
+    scanf("%s", usuario);
+    fflush(stdin);
+
+    printf("  Senha: ");
+
+    while (1) {
+    caractere = getch();
+    if (caractere == 13){
+        senha[i] = '\0';
+        break;
+    }
+
+    else if (caractere == 8 && i > 0){
+        printf("\b \b");
+        i--;
+    }
+
+    else {
+        senha[i] = caractere;
+        i++;
+        printf("*");
+    }
+
+    }
+
+    system("cls");
+
+    if (checarLogin(usuario, senha)) {
+        Linha();
+        printf("  Digite o nome da obra:\n");
+        gets(nomeDaObra);
+        system("cls");
+    do {
+
+        Notas(&atracao);
+        SalvarNotaObra(&atracao,nomeDaObra);
+
+        Linha();
+        printf("\t\t\t\t\t  Agradecemos por participar!!!\n");
+        Linha();
+        Linha2();
+        system("pause");
+        system("cls");
+
+        Linha();
+        printf("  Digite abaixo o número correspondente:\n\n");
+        printf("  1. Sair.\n");
+        printf("  2. Para retornar ao menu.\n");
+        scanf("%d",&terminar);
+        fflush(stdin);
+        system("cls");
+
+    } while (terminar != 1);
+
+    }
+
+
+}
