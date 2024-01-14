@@ -1,1 +1,327 @@
-oi
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+#include <time.h>
+#include <unistd.h>
+
+//Admin
+
+//Compra do ingresso
+
+//Struct do usuário
+typedef struct  {
+   char tipo[20];
+   char cpf[20];
+   char temas[20];
+   int quantidadeTemas;
+} Pessoa;
+
+//Lista de caracteres com 3 itens
+char *opcoes[] = {
+"  Carros Voadores.",
+"  Jogos Olímpicos em Paris.",
+"  Futuro da Inteligência Artificial na sociedade."
+};
+
+//Lista de caracteres com 3 itens
+char *tipoIngresso[] = {
+"  Entrada cheia.",
+"  Meia-entrada.",
+"  Isento."
+};
+
+//Função de formatação para o console
+void Linha() {
+printf ("\n\n");
+}
+
+//Função de formatação para o console
+void Linha2() {
+printf("                \t\t\t");
+}
+
+//Função para printar os temas e tipos do ingresso
+void printArray(char *array[], int size) {
+    for (int i = 0; i < size; i++) {
+        printf("  %d. %s\n",i+1, array[i]);
+    }
+}
+
+int confirmarEscolhas(Pessoa *usuario) {
+
+    Linha();
+    printf("  Temas escolhidos:\n");
+    Linha();
+    int inteira = 0,meia = 0,insento = 0,confirma = 0;
+    for(int i = 0; i < usuario->quantidadeTemas; i++){
+    //Printar os temas que usuario escolheu
+    int numeroTema = usuario->temas[i] - '0';
+    printf("%s\n",  opcoes[numeroTema -1]);
+    switch(usuario->tipo[i]){
+    case '1':
+    inteira++;
+    break;
+    case '2':
+    meia++;
+    break;
+    case '3':
+    insento++;
+    break;
+
+    }
+}
+    Linha();
+    printf("  Ingressos escolhidos:");
+    Linha();
+    printf("\n  Inteira: %d\n  Meia-entrada: %d \n  Isento: %d\n",  inteira,meia,insento);
+     Linha();
+    printf("  Digite abaixo o número correspondente:\n\n");
+    printf("  1. Confirmar.\n");
+    printf("  2. Retornar ao menu.\n");
+    scanf("%d",&confirma);
+
+    if(confirma == 1){
+    system("cls");
+    return 1;
+    }
+
+    else {
+    system("cls");
+    return 0;}
+}
+
+
+int checarLogin(char *usuario, char *senha) {
+
+    FILE *file = fopen("../ArquivosPim/contas.csv", "r");
+    if (file == NULL) {
+        Linha();
+        printf("  Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+
+    char usuarioSalvo[50], senhaSalva[50], nivelAcesso[5];
+    fscanf(file, "%*[^,\n],");
+    while (fscanf(file, " %[^;];%[^;];%[^\n];", usuarioSalvo, senhaSalva,nivelAcesso)==3) {
+        if (strcmp(usuario, usuarioSalvo) == 0 && strcmp(senha, senhaSalva) == 0) {
+                if(strcmp(nivelAcesso,"1") != 0){
+                    Linha();
+
+                    printf("  Somente administradores tem acesso a esse programa.");
+                    Linha();
+                    fclose(file);
+                    return 0;
+                }
+            fclose(file);
+            return 1; //Login realizado com sucesso
+        }
+    }   Linha();
+        printf("  Usuário ou senha inválidos");
+        Linha();
+
+    fclose(file);
+    return 0; //Login invalido
+}
+
+//Função para exibir opções de temas e obter escolhas do usuário
+void EscolherTema(Pessoa *usuario) {
+
+    Linha();
+    printf("  Prezado(a) visitante digite abaixo o número correspondente ao TEMA que deseja visualizar: ");
+    Linha();
+    printf("  Para mais de um tema digite sequencialmente a quantidade desejada.\n");
+    printf("  Exemplo: 123 ou 12223333.\n");
+    Linha();
+    Linha();
+    printf("  Obs.: É limitado a escolha de até 20 ingressos.");
+    Linha();
+    int size = sizeof(opcoes) / sizeof(opcoes[0]);
+    printArray(opcoes, size);
+    Linha();
+    scanf("%s", &usuario->temas);
+    fflush(stdin);
+    system("cls");
+
+}
+
+//Função para exibir os tipos do ingresso e obter escolhas do usuário
+void EscolherTipoIngresso(Pessoa *usuario) {
+
+    Linha();
+    printf("  Agora digite abaixo o número correspondente ao TIPO do(s) ingresso(s) selecionado(s) anteriormente: ");
+    Linha();
+    printf("  Para mais de um tipo de ingresso digite sequencialmente a quantidade.\n");
+    printf("  Exemplo: 123 ou 111223.\n");
+    Linha();
+    Linha();
+    printf("  Obs.: É limitado a escolha de até 20 ingressos.");
+    Linha();
+    int size = sizeof(tipoIngresso) / sizeof(tipoIngresso[0]);
+    printArray(tipoIngresso, size);
+    Linha();
+    scanf("%s", &usuario->tipo);
+    usuario->quantidadeTemas = strlen(&usuario->tipo);
+    fflush(stdin);
+    system("cls");
+
+}
+
+
+void criptografarStringCPF(char *CPF) {
+
+    int i;
+    for (i = 0; i < strlen(CPF); i++) {
+            char letra = CPF[i] + i;
+
+            if ( letra ==';'){
+                 CPF[i] =  '$';
+            } else {
+                 CPF[i] = letra;
+            }
+    }
+}
+
+//Função para salvar o CPF
+void DocumentoCPF(Pessoa *usuario) {
+
+    char cpfStr[20];
+    Linha();
+    printf("  Para finalizar o processo digite seu CPF: \n\n");
+    Linha();
+    printf("  Obs.: De acordo com a Lei nº 13.709/2018– Lei Geral de Proteção de Dados\n  A informação inserida na plataforma destina-se, única e exclusivamente para cadastro\n  E será criptografada afim de proteger o dado.");
+    Linha();
+    scanf("%s",cpfStr);
+    fflush(stdin);
+    system("cls");
+
+    // Criptografa a string
+    criptografarStringCPF(cpfStr);
+    strcpy(usuario->cpf,cpfStr);
+
+}
+long long generateUniqueNumber(int i) {
+
+    time_t currentTime = time(NULL);
+    pid_t pid = getpid();
+    long long uniqueNumber = (long long)currentTime + pid + i;
+    return uniqueNumber;
+}
+
+// Função para obter as escolhas do usuário e salvar em arquivo
+void SalvarUsuarioInfo(Pessoa *usuario) {
+
+    FILE *file = fopen("../ArquivosPim/user_info.csv", "a");
+    if (file == NULL) {
+        printf("  Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+
+    for(int i = 0; i < usuario->quantidadeTemas; i++){
+        long long ingresso = generateUniqueNumber(i);
+        fprintf(file, "%c;%c;%lld;true;%s;\n", usuario->temas[i], usuario->tipo[i],ingresso, usuario->cpf);
+        Linha();
+        //Printar os temas que usuario escolheu
+        int numeroTema = usuario->temas[i] - '0';
+        printf("  Tema escolhido: %s\n",  opcoes[numeroTema -1]);
+        printf("  Número do ingresso: %lld",ingresso);
+    }
+    Linha();
+    Linha();
+    printf("\t\t\t\t");
+    system("pause");
+    system("cls");
+
+    fclose(file);
+    Linha();
+    printf("\t\t\t\t\t  Informações salvas com sucesso!\n");
+}
+
+void paginaInicial() {
+
+    printf("\n\n\n");
+    printf("\t\t\t\t\t Bem-Vindo(a) ao Museu Interativo\n");
+    printf("\t\t\t\t desenvolvido pela organização sem fins lucrativos\n");
+    printf("\t\t\t\t\t\t      UNISEU.");
+
+    printf("\n\n\n\n\n\n\n\n");
+    printf("\t\t\t  Somos uma organização dedicada à criação de museus multitemáticos.\n");
+    printf("\t\t       Nossa missão é proporcionar ao nosso público experiências enriquecedoras\n");
+    printf("\t\t     por meio de exposições que exploram temas relevantes e atuais em todo o mundo.\n");
+
+    printf("\n\n\n\n\n\n\n\n\n");
+    printf("                \t\t\t");
+    system ("pause");
+    system("cls");
+}
+
+void main() {
+
+    setlocale(LC_ALL, "Portuguese");
+    Pessoa novoUsuario;
+
+    int terminar = 0, i=0;
+    char usuario[20], senha[20], caractere;
+
+    Linha();
+    printf("  Usuário: ");
+    scanf("%s", usuario);
+    fflush(stdin);
+
+    printf("  Senha: ");
+
+    while (1) {
+    caractere = getch();
+    if (caractere == 13){
+        senha[i] = '\0';
+        break;
+    }
+
+    else if (caractere == 8 && i > 0){
+        printf("\b \b");
+        i--;
+    }
+
+    else {
+        senha[i] = caractere;
+        i++;
+        printf("*");
+    }
+
+    }
+
+    system("cls");
+
+if (checarLogin(usuario, senha)) {
+    paginaInicial();
+
+    do {
+        EscolherTema(&novoUsuario);
+        EscolherTipoIngresso(&novoUsuario);
+        DocumentoCPF(&novoUsuario);
+
+        if(confirmarEscolhas(&novoUsuario)){
+        SalvarUsuarioInfo(&novoUsuario);
+
+        Linha();
+        printf("\t\t\t\t\t  Obrigado pela sua contribuição!!\n");
+        Linha2();
+        system("pause");
+        system("cls");
+
+        Linha();
+        printf("  Digite abaixo o número correspondente:\n\n");
+        printf("  1. Sair.\n");
+        printf("  2. Para retornar ao menu.\n");
+        scanf("%d",&terminar);
+        fflush(stdin);
+        system("cls");
+        } else {
+        terminar = 2;
+        }
+
+    } while (terminar != 1);
+
+    }
+
+}
