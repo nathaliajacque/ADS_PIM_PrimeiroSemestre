@@ -1,1 +1,195 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <locale.h>
+#define tamanhoTituloObra 250
+
+//Admin
+
+//Calcular a média das notas dadas pelos visitantes e gerar relatório .csv
+
+//Nova estrutura associada ao visitante em relação ao programa de compra do ingresso
+typedef struct {
+    char nome[tamanhoTituloObra];
+    int pontuacaoTotal;
+    int contagemPontuacao;
+    float pontuacaoMedia;
+} Exposicao;
+
+
+//Função de formatação para o console
+void Linha() {
+printf ("\n\n");
+}
+
+//Função de formatação para o console
+void Linha2() {
+printf("                \t\t\t");
+}
+
+//Função do login no inicio do programa
+int checarLogin(char *usuario, char *senha) {
+
+    FILE *file = fopen("../ArquivosPim/contas.csv", "r");
+    if (file == NULL) {
+        Linha();
+        printf("  Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+    fscanf(file, "%*[^,\n],");
+    char usuarioSalvo[50], senhaSalva[50], nivelAcesso[5];
+    while (fscanf(file, " %[^;];%[^;];%[^\n];", usuarioSalvo, senhaSalva,nivelAcesso)==3) {
+        if (strcmp(usuario, usuarioSalvo) == 0 && strcmp(senha, senhaSalva) == 0) {
+                if(strcmp(nivelAcesso,"1") != 0){
+                    Linha();
+                    printf("  Somente administradores tem acesso a esse programa.");
+                    Linha();
+                    fclose(file);
+                    return 0;
+                }
+            fclose(file);
+            return 1; //Login realizado com sucesso
+        }
+    }   Linha();
+        printf("  Usuário ou senha inválidos");
+        Linha();
+
+    fclose(file);
+    return 0; //Login invalido
+}
+
+//Função que criará o arquivo .csv referente ao relatório
+void gerarRelatorio(Exposicao *obras, int quatidade) {
+
+    FILE *file = fopen("../ArquivosPim/relatorio.csv", "w");
+    if (file == NULL) {
+        printf("  Erro ao abrir o arquivo!\n");
+        exit(1);
+    }
+
+    fprintf(file, "Nome da Obra;Média de avaliação;Quantidade de Votos\n");
+
+    for(int i=0; i < quatidade;i++){
+        fprintf(file, "%s;%0.2f;%d\n", obras[i].nome, obras[i].pontuacaoMedia, obras[i].contagemPontuacao);
+    }
+
+    fclose(file);
+
+    Linha();
+    printf("\t\t\t\t\t  Informações salvas com sucesso!\n");
+}
+
+
+int main() {
+
+    setlocale(LC_ALL, "Portuguese");
+
+
+    int terminar = 0, i=0;
+    char usuario[20], senha[20], caractere;
+
+    Linha();
+    printf("  Usuário: ");
+    scanf("%s", usuario);
+    fflush(stdin);
+
+    printf("  Senha: ");
+
+    while (1) {
+    caractere = getch();
+    if (caractere == 13){
+        senha[i] = '\0';
+        break;
+    }
+
+    else if (caractere == 8 && i > 0){
+        printf("\b \b");
+        i--;
+    }
+
+    else {
+        senha[i] = caractere;
+        i++;
+        printf("*");
+    }
+
+    }
+    system("cls");
+
+
+    if (checarLogin(usuario, senha)) {
+
+        // Numero de exposições diferentes
+        const int numExposicoes = 3;
+        Exposicao obras[numExposicoes];
+
+        int contadorObras = 0;
+
+        char nomeObra[tamanhoTituloObra];
+        int nota1,nota2,nota3,nota4;
+        FILE *file = fopen("../ArquivosPim/nota_obra.csv", "r");
+        if (file == NULL) {
+            printf( "  Erro ao abrir o arquivo!\n");
+            return 1;
+        }
+
+
+    do {
+
+    fscanf(file, "%*[^,\n],");
+    while (fscanf(file, " %[^;];%d;%d;%d;%d;", nomeObra, &nota1,&nota2,&nota3,&nota4 ) == 5) {
+        int i;
+        int obraEncontrada = 0;
+
+        for (i = 0; i < contadorObras; ++i) {
+            if (strcmp(obras[i].nome, nomeObra) == 0) {
+                obras[i].pontuacaoTotal += ((nota1+nota2+nota3+nota4)/4);
+                obras[i].contagemPontuacao++;
+                obraEncontrada = 1;
+                break;
+            }
+        }
+
+    if (!obraEncontrada) {
+        if (contadorObras < numExposicoes) {
+            strcpy(obras[contadorObras].nome, nomeObra);
+            obras[contadorObras].pontuacaoTotal = ((nota1+nota2+nota3+nota4)/4);
+            obras[contadorObras].contagemPontuacao = 1;
+            contadorObras++;
+
+    }
+     else {
+            printf ("  Exedeu o limite de obras definido no programa.\n");
+            fclose(file);
+            return 1;
+        }
+    }
+}
+
+    //Calcula e printa a media
+    Linha();
+    printf("  Média de avaliações: \n");
+    for (int i = 0; i < contadorObras; ++i) {
+        obras[i].pontuacaoMedia = (double)obras[i].pontuacaoTotal / obras[i].contagemPontuacao;
+        printf("\n  Nome da obra: %s \n  Média: %.2f  \n  Números de visitantes:  %d\n", obras[i].nome, obras[i].pontuacaoMedia,obras[i].contagemPontuacao);
+
+    }
+
+        Linha();
+        printf("  Digite abaixo o número correspondente:\n\n");
+        printf("  1. Sair.\n");
+        printf("  2. Para recalcular as notas.\n");
+        printf("  3. Gerar um relatório em excel.\n");
+        scanf("%d",&terminar);
+        fflush(stdin);
+        system("cls");
+        if(terminar == 3 ){
+            gerarRelatorio(&obras,contadorObras); //Função para gerar o relatorio
+        }
+
+    } while (terminar != 1);
+        fclose(file);
+    }
+
+}
 
